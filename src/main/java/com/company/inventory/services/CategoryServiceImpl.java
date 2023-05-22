@@ -60,7 +60,7 @@ public class CategoryServiceImpl implements ICategoryService{
 				response.setMetadata("Respuesta ok", "00", "Categoria encontrada");
 			}else {
 				response.setMetadata("Respuesta nok", "-1", "Categoria no encontrada");
-				return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+				return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.NOT_FOUND);
 			}
 			
 			
@@ -75,6 +75,7 @@ public class CategoryServiceImpl implements ICategoryService{
 	}
 
 	@Override
+	@Transactional
 	public ResponseEntity<CategoryResponseRest> save(Category category) {
 		// TODO Auto-generated method stub
 		CategoryResponseRest response = new CategoryResponseRest();
@@ -87,7 +88,7 @@ public class CategoryServiceImpl implements ICategoryService{
 			if(categorySaved != null) {
 				list.add(categorySaved);
 				response.getCategoryResponse().setCategory(list);
-				response.setMetadata("Respuesta ok", "00", "Categoria encontrada");
+				response.setMetadata("Respuesta ok", "00", "Categoria guardada");
 				
 			}else {
 				response.setMetadata("Respuesta nok", "-1", "Categoria no guardada");
@@ -97,6 +98,58 @@ public class CategoryServiceImpl implements ICategoryService{
 			
 		}catch(Exception e) {
 			response.setMetadata("Respuesta nok", "-1", "Error al grabar categoria");
+			e.getStackTrace();
+			return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.OK);
+	}
+
+	@Override
+	@Transactional
+	public ResponseEntity<CategoryResponseRest> update(Category category, Long id) {
+		// TODO Auto-generated method stub
+		CategoryResponseRest response = new CategoryResponseRest();
+		List<Category> list = new ArrayList<>();
+		
+		try {
+			
+			Optional<Category> categorySearch = categoryDao.findById(id);
+			
+			if(categorySearch.isPresent()) {
+				categorySearch.get().setName(category.getName());
+				categorySearch.get().setDescripcion(category.getDescripcion());
+				
+				Category categoryToUpdate = categoryDao.save(categorySearch.get());
+				
+				if(categoryToUpdate != null) {
+					list.add(categoryToUpdate);
+					response.getCategoryResponse().setCategory(list);
+					response.setMetadata("Respuesta ok", "00", "Categoria actualizada");
+				}else{
+					response.setMetadata("Respuesta nok", "-1", "Categoria no actualizada");
+					return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.BAD_REQUEST);
+				}
+			}else {
+				response.setMetadata("Respuesta nok", "-1", "Categoria no encontrada");
+				return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.NOT_FOUND);			
+			}
+			
+//			Category categorySaved = categoryDao.save(category);
+			
+//			if(categorySaved != null) {
+//				list.add(categorySaved);
+//				response.getCategoryResponse().setCategory(list);
+//				response.setMetadata("Respuesta ok", "00", "Categoria encontrada");
+//				
+//			}else {
+//				response.setMetadata("Respuesta nok", "-1", "Categoria no guardada");
+//				return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.BAD_REQUEST);
+//			}
+//			
+			
+		}catch(Exception e) {
+			response.setMetadata("Respuesta nok", "-1", "Error al actualizar categoria");
 			e.getStackTrace();
 			return new ResponseEntity<CategoryResponseRest>(response, HttpStatus.NOT_FOUND);
 		}
